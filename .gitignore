@@ -1,3 +1,8 @@
+jwt.json
+cgsync_jwt.json
+secret.yaml
+token.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
