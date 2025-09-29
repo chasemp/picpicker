@@ -1,0 +1,28 @@
+{
+  "name": "photo-share-pwa",
+  "version": "1.0.0",
+  "description": "A Progressive Web App for sharing random images from Google Photos albums",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "keywords": [
+    "pwa",
+    "google-photos",
+    "sharing",
+    "progressive-web-app"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "gh-pages": "^6.0.0",
+    "terser": "^5.44.0",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "workbox-window": "^7.0.0"
+  }
+}

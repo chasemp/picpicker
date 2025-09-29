@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Share PWA</title>
+    <meta name="description" content="Share random images from your Google Photos albums with commentary">
+    <meta name="theme-color" content="#1976d2">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="/assets/icons/icon-192x192.svg">
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="/assets/icons/icon-512x512.svg">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.svg">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <h1>Photo Share PWA</h1>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Authentication Section -->
+            <section id="auth-section" class="section">
+                <div class="auth-container">
+                    <h2>Connect to Google Photos</h2>
+                    <p>Sign in to access your Google Photos albums and start sharing random images.</p>
+                    <button id="auth-button" class="btn btn-primary">
+                        <span class="btn-icon">📸</span>
+                        Sign in with Google
+                    </button>
+                </div>
+            </section>
+
+            <!-- Album Selection Section -->
+            <section id="album-section" class="section hidden">
+                <h2>Select an Album</h2>
+                <div id="album-list" class="album-list">
+                    <!-- Albums will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Image Display Section -->
+            <section id="image-section" class="section hidden">
+                <div class="image-container">
+                    <img id="random-image" src="" alt="Random image from selected album" class="random-image">
+                    <div class="image-controls">
+                        <button id="new-image-btn" class="btn btn-secondary">
+                            <span class="btn-icon">🎲</span>
+                            New Random Image
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Commentary Section -->
+            <section id="commentary-section" class="section hidden">
+                <h3>Add Commentary</h3>
+                <div class="commentary-container">
+                    <textarea 
+                        id="commentary-input" 
+                        placeholder="Add your thoughts about this image..."
+                        maxlength="280"
+                        class="commentary-input"
+                    ></textarea>
+                    <div class="commentary-footer">
+                        <span id="char-count" class="char-count">0/280</span>
+                        <button id="emoji-picker" class="btn btn-icon">😊</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sharing Section -->
+            <section id="sharing-section" class="section hidden">
+                <h3>Share This Image</h3>
+                <div class="sharing-buttons">
+                    <button id="share-native" class="btn btn-primary">
+                        <span class="btn-icon">📤</span>
+                        Share
+                    </button>
+                    <button id="share-email" class="btn btn-secondary">
+                        <span class="btn-icon">📧</span>
+                        Email
+                    </button>
+                    <button id="share-bluessky" class="btn btn-secondary">
+                        <span class="btn-icon">🐦</span>
+                        Bluesky
+                    </button>
+                    <button id="copy-link" class="btn btn-secondary">
+                        <span class="btn-icon">📋</span>
+                        Copy Link
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Photo Share PWA. Built with ❤️ for sharing memories.</p>
+        </footer>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script type="module" src="/assets/js/app.js"></script>
+</body>
+</html>
