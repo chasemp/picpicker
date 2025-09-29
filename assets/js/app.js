@@ -6,6 +6,9 @@ class PhotoShareApp {
     this.currentAlbum = null;
     this.currentImage = null;
     this.commentary = '';
+    this.googleAuth = null;
+    this.googlePhotosAPI = null;
+    this.albums = [];
     
     this.init();
   }
@@ -18,6 +21,9 @@ class PhotoShareApp {
     
     // Register service worker
     await this.registerServiceWorker();
+    
+    // Initialize Google Photos API
+    await this.initializeGooglePhotos();
     
     // Set up event listeners
     this.setupEventListeners();
@@ -109,6 +115,12 @@ class PhotoShareApp {
     if (emojiPicker) {
       emojiPicker.addEventListener('click', () => this.showEmojiPicker());
     }
+
+    // Sign out button
+    const signOutBtn = document.getElementById('sign-out-btn');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => this.handleSignOut());
+    }
   }
 
   // Theme Management
@@ -128,55 +140,151 @@ class PhotoShareApp {
     this.setTheme(newTheme);
   }
 
-  // Authentication (Placeholder for Phase 2)
+  // Initialize Google Photos API
+  async initializeGooglePhotos() {
+    try {
+      // Initialize Google Auth
+      this.googleAuth = new GoogleAuth();
+      
+      // Get configuration
+      const config = window.APIConfig.getGooglePhotosConfig();
+      
+      // Validate configuration
+      const validation = window.APIConfig.validateConfig();
+      if (!validation.isValid) {
+        console.error('API Configuration errors:', validation.errors);
+        this.showError('API configuration is incomplete. Please check your Google Photos API setup.');
+        return;
+      }
+      
+      // Initialize with client ID
+      await this.googleAuth.init(config.clientId);
+      
+      // Initialize Google Photos API
+      this.googlePhotosAPI = new GooglePhotosAPI(this.googleAuth);
+      
+      console.log('Google Photos API initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Google Photos API:', error);
+      this.showError('Failed to initialize Google Photos API. Please check your configuration.');
+    }
+  }
+
+  // Authentication
   async checkAuthStatus() {
-    // This will be implemented in Phase 2
     console.log('Checking authentication status...');
-    // For now, show the auth section
-    this.showSection('auth-section');
+    
+    if (!this.googleAuth) {
+      this.showSection('auth-section');
+      return;
+    }
+    
+    try {
+      if (this.googleAuth.isSignedIn()) {
+        this.isAuthenticated = true;
+        this.showSignOutButton(true);
+        this.showSection('album-section');
+        await this.loadAlbums();
+      } else {
+        this.showSignOutButton(false);
+        this.showSection('auth-section');
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      this.showSection('auth-section');
+    }
   }
 
   async handleAuth() {
-    // This will be implemented in Phase 2
     console.log('Handling authentication...');
     this.showLoading(true);
     
-    // Simulate authentication process
-    setTimeout(() => {
+    try {
+      if (!this.googleAuth) {
+        throw new Error('Google Auth not initialized');
+      }
+      
+      const authResult = await this.googleAuth.signIn();
       this.isAuthenticated = true;
+      
       this.showLoading(false);
+      this.showSignOutButton(true);
       this.showSection('album-section');
-      this.loadAlbums();
-    }, 2000);
+      await this.loadAlbums();
+      
+      this.showNotification(window.APIConfig.getSuccessMessage('signedIn'));
+    } catch (error) {
+      console.error('Authentication error:', error);
+      this.showLoading(false);
+      this.showError(window.APIConfig.getErrorMessage('notAuthenticated'));
+    }
   }
 
-  // Album Management (Placeholder for Phase 2)
+  async handleSignOut() {
+    try {
+      if (this.googleAuth) {
+        await this.googleAuth.signOut();
+      }
+      
+      this.isAuthenticated = false;
+      this.currentAlbum = null;
+      this.currentImage = null;
+      this.albums = [];
+      
+      this.showSignOutButton(false);
+      this.showSection('auth-section');
+      this.showNotification(window.APIConfig.getSuccessMessage('signedOut'));
+    } catch (error) {
+      console.error('Sign out error:', error);
+      this.showError('Error signing out');
+    }
+  }
+
+  // Album Management
   async loadAlbums() {
-    // This will be implemented in Phase 2
     console.log('Loading albums...');
+    this.showLoading(true);
     
-    // Mock data for demonstration
-    const mockAlbums = [
-      { id: '1', title: 'Vacation 2024', count: 45, thumbnail: 'https://via.placeholder.com/200x120/1976d2/ffffff?text=Vacation' },
-      { id: '2', title: 'Family Photos', count: 123, thumbnail: 'https://via.placeholder.com/200x120/4caf50/ffffff?text=Family' },
-      { id: '3', title: 'Nature', count: 67, thumbnail: 'https://via.placeholder.com/200x120/ff9800/ffffff?text=Nature' },
-      { id: '4', title: 'Food', count: 89, thumbnail: 'https://via.placeholder.com/200x120/e91e63/ffffff?text=Food' }
-    ];
-    
-    this.renderAlbums(mockAlbums);
+    try {
+      if (!this.googlePhotosAPI) {
+        throw new Error('Google Photos API not initialized');
+      }
+      
+      const response = await this.googlePhotosAPI.getAlbums();
+      this.albums = response.albums;
+      
+      if (this.albums.length === 0) {
+        this.showError(window.APIConfig.getErrorMessage('noAlbums'));
+        return;
+      }
+      
+      this.renderAlbums(this.albums);
+      this.showNotification(window.APIConfig.getSuccessMessage('albumLoaded'));
+    } catch (error) {
+      console.error('Error loading albums:', error);
+      this.showError(window.APIConfig.getErrorMessage('apiError'));
+    } finally {
+      this.showLoading(false);
+    }
   }
 
   renderAlbums(albums) {
     const albumList = document.getElementById('album-list');
     if (!albumList) return;
     
-    albumList.innerHTML = albums.map(album => `
-      <div class="album-item" data-album-id="${album.id}">
-        <img src="${album.thumbnail}" alt="${album.title}" class="album-thumbnail">
-        <div class="album-title">${album.title}</div>
-        <div class="album-count">${album.count} photos</div>
-      </div>
-    `).join('');
+    albumList.innerHTML = albums.map(album => {
+      const thumbnailUrl = album.coverPhotoBaseUrl ? 
+        `${album.coverPhotoBaseUrl}=w200-h200-c` : 
+        'https://via.placeholder.com/200x120/cccccc/666666?text=No+Image';
+      
+      return `
+        <div class="album-item" data-album-id="${album.id}">
+          <img src="${thumbnailUrl}" alt="${album.title}" class="album-thumbnail">
+          <div class="album-title">${album.title}</div>
+          <div class="album-count">${album.mediaItemsCount || 0} photos</div>
+        </div>
+      `;
+    }).join('');
   }
 
   handleAlbumClick(event) {
@@ -199,31 +307,48 @@ class PhotoShareApp {
     this.getRandomImage();
   }
 
-  // Image Management (Placeholder for Phase 2)
+  // Image Management
   async getRandomImage() {
     if (!this.currentAlbum) return;
     
     console.log('Getting random image from album:', this.currentAlbum.title);
     this.showLoading(true);
     
-    // Mock random image
-    const mockImages = [
-      'https://picsum.photos/800/600?random=1',
-      'https://picsum.photos/800/600?random=2',
-      'https://picsum.photos/800/600?random=3',
-      'https://picsum.photos/800/600?random=4',
-      'https://picsum.photos/800/600?random=5'
-    ];
-    
-    const randomImageUrl = mockImages[Math.floor(Math.random() * mockImages.length)];
-    
-    setTimeout(() => {
-      this.currentImage = randomImageUrl;
-      this.displayImage(randomImageUrl);
+    try {
+      if (!this.googlePhotosAPI) {
+        throw new Error('Google Photos API not initialized');
+      }
+      
+      const mediaItem = await this.googlePhotosAPI.getRandomMediaFromAlbum(this.currentAlbum.id);
+      
+      if (!mediaItem) {
+        throw new Error('No media found in album');
+      }
+      
+      // Get optimized image URL
+      const imageUrl = this.googlePhotosAPI.getImageUrl(mediaItem, 800, 600);
+      
+      if (!imageUrl) {
+        throw new Error('Could not generate image URL');
+      }
+      
+      this.currentImage = {
+        url: imageUrl,
+        fullUrl: this.googlePhotosAPI.getFullResolutionUrl(mediaItem),
+        metadata: this.googlePhotosAPI.getMediaMetadata(mediaItem)
+      };
+      
+      this.displayImage(imageUrl);
       this.showLoading(false);
       this.showSection('commentary-section');
       this.showSection('sharing-section');
-    }, 1000);
+      
+      this.showNotification(window.APIConfig.getSuccessMessage('imageLoaded'));
+    } catch (error) {
+      console.error('Error getting random image:', error);
+      this.showLoading(false);
+      this.showError(window.APIConfig.getErrorMessage('noMedia'));
+    }
   }
 
   displayImage(imageUrl) {
@@ -294,6 +419,18 @@ class PhotoShareApp {
     }
   }
 
+  // UI Helper Functions
+  showSignOutButton(show) {
+    const signOutBtn = document.getElementById('sign-out-btn');
+    if (signOutBtn) {
+      if (show) {
+        signOutBtn.classList.remove('hidden');
+      } else {
+        signOutBtn.classList.add('hidden');
+      }
+    }
+  }
+
   // Sharing Functions
   async shareNative() {
     if (!this.currentImage) return;
@@ -301,13 +438,14 @@ class PhotoShareApp {
     const shareData = {
       title: 'Check out this photo!',
       text: this.commentary || 'A random image from my Google Photos album',
-      url: window.location.href
+      url: this.currentImage.url || window.location.href
     };
     
     if (navigator.share) {
       try {
         await navigator.share(shareData);
         console.log('Content shared successfully');
+        this.showNotification(window.APIConfig.getSuccessMessage('shared'));
       } catch (error) {
         console.error('Error sharing:', error);
         this.fallbackShare();
@@ -319,7 +457,7 @@ class PhotoShareApp {
 
   shareEmail() {
     const subject = 'Check out this photo!';
-    const body = `${this.commentary || 'A random image from my Google Photos album'}\n\nView the image: ${this.currentImage}`;
+    const body = `${this.commentary || 'A random image from my Google Photos album'}\n\nView the image: ${this.currentImage.url || this.currentImage}`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     window.open(mailtoUrl);
@@ -332,7 +470,7 @@ class PhotoShareApp {
   }
 
   async copyLink() {
-    const linkText = `${this.commentary || 'Check out this random photo!'}\n\n${this.currentImage}`;
+    const linkText = `${this.commentary || 'Check out this random photo!'}\n\n${this.currentImage.url || this.currentImage}`;
     
     try {
       await navigator.clipboard.writeText(linkText);
@@ -421,6 +559,31 @@ class PhotoShareApp {
     `;
     
     document.body.appendChild(updateNotification);
+  }
+
+  showError(message) {
+    // Simple error notification implementation
+    const errorNotification = document.createElement('div');
+    errorNotification.className = 'error-notification';
+    errorNotification.textContent = message;
+    errorNotification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #f44336;
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      max-width: 300px;
+    `;
+    
+    document.body.appendChild(errorNotification);
+    
+    setTimeout(() => {
+      errorNotification.remove();
+    }, 5000);
   }
 }
 

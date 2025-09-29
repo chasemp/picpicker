@@ -21,9 +21,15 @@
         <!-- Header -->
         <header class="header">
             <h1>Photo Share PWA</h1>
-            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                <span class="theme-icon">🌙</span>
-            </button>
+            <div class="header-controls">
+                <button id="sign-out-btn" class="btn btn-secondary hidden" aria-label="Sign out">
+                    <span class="btn-icon">🚪</span>
+                    Sign Out
+                </button>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <!-- Main Content -->
@@ -114,6 +120,11 @@
         <p>Loading...</p>
     </div>
 
+    <!-- Google Photos API Scripts -->
+    <script src="/src/config/api-config.js"></script>
+    <script src="/src/auth/google-auth.js"></script>
+    <script src="/src/photos/google-photos-api.js"></script>
+    
     <!-- Service Worker Registration -->
     <script type="module" src="/assets/js/app.js"></script>
 </body>

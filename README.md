@@ -1,129 +1,106 @@
 # Photo Share PWA
 
-A Progressive Web App (PWA) for sharing random images from Google Photos albums with commentary to various platforms.
+A Progressive Web App for sharing random images from Google Photos albums with commentary to various platforms.
 
 ## Features
 
-### Phase 1: PWA Foundation ✅
-- **Progressive Web App**: Installable on mobile and desktop devices
-- **Offline Support**: Works offline with cached content
-- **Responsive Design**: Mobile-first approach with touch-friendly interface
-- **Theme Support**: Light and dark theme toggle
-- **Service Worker**: Advanced caching for static assets and API responses
-- **Modern UI**: Clean, accessible interface with smooth animations
+- 🔐 **Secure Authentication**: OAuth 2.0 integration with Google Photos
+- 📱 **PWA Ready**: Installable on mobile devices with offline support
+- 🎲 **Random Image Selection**: Get random photos from your Google Photos albums
+- 💬 **Commentary System**: Add your thoughts with emoji support
+- 📤 **Multi-Platform Sharing**: Share to email, social media, and more
+- 🌙 **Dark/Light Theme**: Toggle between themes
+- 🔒 **Secure Storage**: Uses Credential Management API for secure token storage
 
-### Phase 2: Google Photos Integration (Planned)
-- OAuth 2.0 authentication with Google Photos
-- Album browsing and selection
-- Random image fetching from selected albums
-- Secure token storage
+## Setup Instructions
 
-### Phase 3: Credential Management (Planned)
-- Secure credential storage using browser APIs
-- Biometric authentication support
-- Session management
+### 1. Google Photos API Setup
 
-### Phase 4: Sharing System (Planned)
-- Web Share API integration
-- Email sharing
-- Bluesky integration
-- Copy to clipboard functionality
-- Commentary system with emoji support
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google Photos Library API
+4. Create OAuth 2.0 credentials:
+   - Application type: Web application
+   - Authorized JavaScript origins: `https://your-username.github.io`
+   - Authorized redirect URIs: `https://your-username.github.io/oauth2callback`
+5. Create an API key for the Google Photos Library API
 
-## Getting Started
+### 2. Configuration
 
-### Prerequisites
-- Node.js 18 or higher
-- npm or yarn
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
 
-### Installation
+2. Update the configuration in `src/config/api-config.js`:
+   ```javascript
+   this.googlePhotos = {
+     clientId: 'YOUR_GOOGLE_CLIENT_ID_HERE',
+     apiKey: 'YOUR_GOOGLE_API_KEY_HERE',
+     // ... other config
+   };
+   ```
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd photo-share-pwa
-```
+### 3. Development
 
-2. Install dependencies:
-```bash
-npm install
-```
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
+2. Start development server:
+   ```bash
+   npm run dev
+   ```
 
-4. Open your browser and navigate to `http://localhost:3000`
+3. Open your browser and navigate to `http://localhost:5173`
 
-### Building for Production
+### 4. Deployment
 
-```bash
-npm run build
-```
+1. Build the project:
+   ```bash
+   npm run build
+   ```
 
-The built files will be in the `dist` directory, ready for deployment to GitHub Pages.
+2. Deploy to GitHub Pages:
+   ```bash
+   npm run deploy
+   ```
 
 ## Project Structure
 
 ```
 /
-├── index.html              # Main HTML file
-├── manifest.json           # PWA manifest
-├── sw.js                  # Service worker
-├── offline.html           # Offline fallback page
+├── index.html                 # Main HTML file
+├── manifest.json             # PWA manifest
+├── sw.js                     # Service worker
 ├── assets/
-│   ├── icons/             # PWA icons (SVG)
 │   ├── css/
-│   │   └── styles.css     # Main stylesheet
+│   │   └── styles.css        # Main stylesheet
 │   └── js/
-│       └── app.js         # Main application logic
-├── src/                   # Source modules (for future phases)
-│   ├── auth/              # Authentication logic
-│   ├── photos/            # Google Photos integration
-│   ├── sharing/           # Sharing functionality
-│   ├── storage/           # Local storage management
-│   └── utils/             # Utility functions
-├── .github/
-│   └── workflows/
-│       └── deploy.yml     # GitHub Actions deployment
-└── package.json           # Dependencies and scripts
+│       └── app.js            # Main application logic
+├── src/
+│   ├── auth/
+│   │   └── google-auth.js    # Google OAuth implementation
+│   ├── photos/
+│   │   └── google-photos-api.js # Google Photos API integration
+│   └── config/
+│       └── api-config.js     # API configuration
+├── .env.example              # Environment variables template
+└── README.md                 # This file
 ```
 
-## Development
+## API Configuration
 
-### Available Scripts
+The app requires the following Google Photos API permissions:
+- `https://www.googleapis.com/auth/photoslibrary.readonly`
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run deploy` - Deploy to GitHub Pages
+## Security Features
 
-### PWA Features
-
-The app includes all essential PWA features:
-
-- **Web App Manifest**: Defines app metadata, icons, and display properties
-- **Service Worker**: Handles caching, offline functionality, and background sync
-- **Responsive Design**: Works on all device sizes
-- **Theme Support**: Light and dark mode with system preference detection
-- **Accessibility**: Keyboard navigation and screen reader support
-
-## Deployment
-
-### GitHub Pages
-
-The app is configured for automatic deployment to GitHub Pages:
-
-1. Push to the `main` branch
-2. GitHub Actions will automatically build and deploy the app
-3. The app will be available at `https://<username>.github.io/photo-share-pwa/`
-
-### Manual Deployment
-
-1. Build the project: `npm run build`
-2. Deploy the `dist` folder to your hosting provider
-3. Ensure your server serves `index.html` for all routes (SPA routing)
+- **Credential Management API**: Secure storage of OAuth tokens
+- **HTTPS Required**: All API calls require HTTPS
+- **Token Refresh**: Automatic token refresh when expired
+- **Secure Storage**: Tokens stored using browser's secure credential storage
 
 ## Browser Support
 
@@ -144,15 +121,15 @@ The app is configured for automatic deployment to GitHub Pages:
 
 MIT License - see LICENSE file for details
 
-## Roadmap
-
-- [x] Phase 1: PWA Foundation
-- [ ] Phase 2: Google Photos Integration
-- [ ] Phase 3: Credential Management
-- [ ] Phase 4: Sharing System
-- [ ] Phase 5: GitHub Pages Deployment
-- [ ] Phase 6: Advanced Features
-
 ## Support
 
 For issues and questions, please open an issue on GitHub.
+
+## Roadmap
+
+- [x] Phase 1: PWA Foundation
+- [x] Phase 2: Google Photos Integration
+- [ ] Phase 3: Credential Management
+- [ ] Phase 4: Advanced Sharing
+- [ ] Phase 5: GitHub Pages Deployment
+- [ ] Phase 6: Advanced Features
